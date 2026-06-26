@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To. 다영</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Noto Serif KR', serif;
+      background: linear-gradient(145deg, #0d0b15 0%, #1a0e12 30%, #0f0b18 60%, #0a0812 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      position: relative;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 800px;
+      height: 800px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(180, 130, 100, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .paper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+      background: #faf3e0;
+      border-radius: 4px;
+      box-shadow:
+        0 2px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      padding: 56px 60px;
+      animation: paperIn 1.4s ease both;
+      line-height: 2;
+    }
+
+    @keyframes paperIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .letter {
+      min-height: 300px;
+      font-size: 17px;
+      color: #3e2723;
+      letter-spacing: 0.02em;
+      word-break: break-word;
+    }
+
+    .letter .line-first {
+      display: block;
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c1810;
+    }
+
+    .letter .line-closing {
+      display: block;
+      text-align: right;
+      margin-top: 16px;
+      font-size: 18px;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: #8b4513;
+      margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .cursor.done {
+      animation: none;
+      opacity: 0;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    @keyframes charPop {
+      0% { opacity: 0.2; transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .typed-char {
+      animation: charPop 0.18s ease-out both;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 14px 20px;
+      background: rgba(20, 15, 25, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      flex-wrap: wrap;
+    }
+
+    .ctrl-btn {
+      padding: 8px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e0d5c0;
+      font-family: 'Noto Serif KR', serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.96);
+    }
+
+    .ctrl-btn.icon-btn {
+      font-size: 20px;
+      padding: 8px 14px;
+      line-height: 1;
+    }
+
+    .ctrl-btn.icon-btn.playing {
+      color: #6fcf97;
+      border-color: rgba(111, 207, 151, 0.3);
+    }
+
+    .speed-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #b0a590;
+      font-size: 13px;
+    }
+
+    .speed-group input[type="range"] {
+      width: 100px;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .speed-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #c0a880;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    .speed-group input[type="range"]::-webkit-slider-thumb:hover {
+      background: #d4b890;
+    }
+
+    .speed-group input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #c0a880;
+      cursor: pointer;
+      border: none;
+    }
+
+    .speed-label {
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .status-msg {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      padding: 8px 20px;
+      border-radius: 20px;
+      background: rgba(20, 15, 25, 0.8);
+      backdrop-filter: blur(12px);
+      color: #e0d5c0;
+      font-size: 13px;
+      font-family: 'Noto Serif KR', serif;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .status-msg.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 60px 12px 100px;
+      }
+
+      .paper {
+        padding: 36px 24px;
+      }
+
+      .letter {
+        font-size: 15px;
+        min-height: 200px;
+      }
+
+      .letter .line-first {
+        font-size: 20px;
+      }
+
+      .controls {
+        gap: 10px;
+        padding: 10px 12px;
+      }
+
+      .ctrl-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+
+      .ctrl-btn.icon-btn {
+        font-size: 18px;
+        padding: 6px 10px;
+      }
+
+      .speed-group input[type="range"] {
+        width: 70px;
+      }
+
+      .divider {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="paper">
+    <div class="letter" id="letter"></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn icon-btn" id="bgmBtn" title="BGM on/off">🔇</button>
+
+    <div class="divider"></div>
+
+    <div class="speed-group">
+      <span id="speedLabel" class="speed-label">보통</span>
+      <input type="range" id="speedSlider" min="1" max="10" value="6" />
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="ctrl-btn" id="showAllBtn">한 번에 보기</button>
+    <button class="ctrl-btn" id="restartBtn">다시 시작</button>
+  </div>
+
+  <div id="youtubePlayer" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;overflow:hidden;"></div>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <script>
+    // ============================================================
+    // 🔽 여기에 유튜브 영상 ID를 넣으세요
+    //    예: 'dQw4w9WgXcQ' ← 유튜브 URL의 v= 부분
+    // ============================================================
+    const YOUTUBE_VIDEO_ID = '5-DrYgnKHFU';
+
+    // ============================================================
+    // 편지 내용
+    // ============================================================
+    const LETTER_TEXT = `다영에게
+
+안녕 다영아, 이번에는 새롭게 편지를 만들어보았어.
+손으로 글을 쓰는 것보다 정성이 안 들어보일지도 모르지만,
+내가 할 수 있는 기술로 한번은 무언가를 너를 위해 해보고 싶었어.
+
+이 편지를 볼 때는 아마 내 생일때 보게 되겠지?
+그렇다는건 그때 네가 나와 함께 있다는 거고,
+난 또 내가 가장 좋아하는 사람과 생일을 보내고 있다는 뜻이겠지.
+항상 고마워. 나를 위해서 여유가 없는 상황에서도 나를 챙겨주고 애써주어서.
+너의 불안과 힘듬에 대해서 큰 도움을 주지 못할 망정 그것에 가중하는 것 같아서 미안해.
+
+다영아 나는 부산에 너를 보기 위해서 온 것이 사실이고,
+그것이 옳은 선택이라고 생각해.
+그러니까 혹시나 마음 한켠에 지금의 힘듬이 다영이 때문에 생겼다는 생각은 안했으면 해.
+
+너랑 나는 앞으로 더 잘될거고, 그걸 우리는 의심하지 말자.
+
+집이 멀어진다고 너무 힘들어하는 지금도,
+미래에 꼭 붙어있기 위해서라고 생각하자.
+
+우리의 시작이 비루한 만큼 끝은 창대할 거라고 조금은 믿어보고,
+서로 기대면서 조금씩 나아가자.
+
+생일 챙겨주고 축하해주어서 고마워,
+사랑해 다영아.`;
+
+    // ============================================================
+    // DOM refs
+    // ============================================================
+    const letterEl = document.getElementById('letter');
+    const cursorEl = document.createElement('span');
+    cursorEl.className = 'cursor';
+
+    const bgmBtn = document.getElementById('bgmBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedLabel = document.getElementById('speedLabel');
+    const showAllBtn = document.getElementById('showAllBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    // ============================================================
+    // State
+    // ============================================================
+    const chars = LETTER_TEXT.split('');
+    let currentIndex = 0;
+    let isTyping = false;
+    let isComplete = false;
+    let isPaused = false;
+    let timer = null;
+    let player = null;
+    let bgmReady = false;
+    let bgmPlaying = false;
+
+    const SPEED_MAP = {
+      1: 220, 2: 180, 3: 150, 4: 120, 5: 100,
+      6: 80, 7: 65, 8: 50, 9: 35, 10: 20,
+    };
+
+    const SPEED_LABELS = {
+      1: '매우 느림', 2: '느림', 3: '조금 느림', 4: '약간 느림', 5: '보통',
+      6: '약간 빠름', 7: '빠름', 8: '매우 빠름', 9: '아주 빠름', 10: '최고',
+    };
+
+    // ============================================================
+    // Typing engine
+    // ============================================================
+    function getDelay() {
+      const val = parseInt(speedSlider.value, 10);
+      return SPEED_MAP[val] || 80;
+    }
+
+    function updateSpeedLabel() {
+      const val = parseInt(speedSlider.value, 10);
+      speedLabel.textContent = SPEED_LABELS[val] || '보통';
+    }
+
+    speedSlider.addEventListener('input', updateSpeedLabel);
+    updateSpeedLabel();
+
+    function typeNext() {
+      if (!isTyping || currentIndex >= chars.length) {
+        if (currentIndex >= chars.length) {
+          isComplete = true;
+          isTyping = false;
+          cursorEl.classList.add('done');
+        }
+        return;
+      }
+
+      const ch = chars[currentIndex];
+
+      if (ch === '\n') {
+        letterEl.appendChild(document.createElement('br'));
+        if (currentIndex + 1 < chars.length && chars[currentIndex + 1] === '\n') {
+          letterEl.appendChild(document.createElement('br'));
+          currentIndex++;
+        }
+      } else {
+        const span = document.createElement('span');
+        span.textContent = ch;
+        span.classList.add('typed-char');
+        letterEl.appendChild(span);
+      }
+
+      currentIndex++;
+      letterEl.appendChild(cursorEl);
+
+      const paperRect = letterEl.closest('.paper').getBoundingClientRect();
+      if (paperRect.bottom > window.innerHeight - 80) {
+        letterEl.closest('.paper').scrollIntoView({ block: 'end', behavior: 'smooth' });
+      }
+
+      timer = setTimeout(typeNext, getDelay());
+    }
+
+    function startTyping() {
+      if (isTyping || isComplete) return;
+      isTyping = true;
+      isPaused = false;
+      typeNext();
+    }
+
+    function pauseTyping() {
+      isTyping = false;
+      isPaused = true;
+      if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    function showAll() {
+      pauseTyping();
+      letterEl.innerHTML = '';
+
+      for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i];
+        if (ch === '\n') {
+          letterEl.appendChild(document.createElement('br'));
+          if (i + 1 < chars.length && chars[i + 1] === '\n') {
+            letterEl.appendChild(document.createElement('br'));
+            i++;
+          }
+        } else {
+          const span = document.createElement('span');
+          span.textContent = ch;
+          span.classList.add('typed-char');
+          letterEl.appendChild(span);
+        }
+      }
+
+      currentIndex = chars.length;
+      isComplete = true;
+      cursorEl.classList.add('done');
+      letterEl.appendChild(cursorEl);
+      showStatus('모든 내용을 표시했습니다');
+    }
+
+    function restart() {
+      pauseTyping();
+      letterEl.innerHTML = '';
+      currentIndex = 0;
+      isComplete = false;
+      cursorEl.classList.remove('done');
+      letterEl.appendChild(cursorEl);
+      showStatus('다시 시작합니다');
+      startTyping();
+    }
+
+    // ============================================================
+    // Status message
+    // ============================================================
+    let statusTimer = null;
+
+    function showStatus(msg) {
+      statusMsg.textContent = msg;
+      statusMsg.classList.add('show');
+      if (statusTimer) clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => {
+        statusMsg.classList.remove('show');
+      }, 1800);
+    }
+
+    // ============================================================
+    // BGM (YouTube IFrame API)
+    // ============================================================
+    function initYouTubePlayer() {
+      if (YOUTUBE_VIDEO_ID === 'YOUR_VIDEO_ID') {
+        bgmBtn.title = '유튜브 영상 ID를 설정해주세요';
+        bgmBtn.style.opacity = '0.4';
+        bgmBtn.style.cursor = 'not-allowed';
+        return;
+      }
+
+      if (typeof YT === 'undefined' || !YT.Player) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const first = document.getElementsByTagName('script')[0];
+        first.parentNode.insertBefore(tag, first);
+        window.onYouTubeIframeAPIReady = createPlayer;
+      } else {
+        createPlayer();
+      }
+    }
+
+    function createPlayer() {
+      try {
+        player = new YT.Player('youtubePlayer', {
+          height: '0',
+          width: '0',
+          videoId: YOUTUBE_VIDEO_ID,
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            loop: 1,
+            playlist: YOUTUBE_VIDEO_ID,
+            enablejsapi: 1,
+          },
+          events: {
+            onReady: () => {
+              bgmReady = true;
+              bgmBtn.title = 'BGM on/off';
+            },
+            onError: () => {
+              bgmBtn.textContent = '⚠️';
+              bgmBtn.title = 'BGM을 불러올 수 없습니다';
+            },
+          },
+        });
+      } catch (e) {
+        bgmBtn.textContent = '⚠️';
+      }
+    }
+
+    bgmBtn.addEventListener('click', () => {
+      if (!bgmReady || !player) return;
+      if (bgmPlaying) {
+        player.pauseVideo();
+        bgmPlaying = false;
+        bgmBtn.textContent = '🔇';
+        bgmBtn.classList.remove('playing');
+      } else {
+        player.playVideo();
+        bgmPlaying = true;
+        bgmBtn.textContent = '🎵';
+        bgmBtn.classList.add('playing');
+      }
+    });
+
+    // ============================================================
+    // Event listeners
+    // ============================================================
+    showAllBtn.addEventListener('click', showAll);
+    restartBtn.addEventListener('click', restart);
+
+    // ============================================================
+    // Init
+    // ============================================================
+    letterEl.appendChild(cursorEl);
+    initYouTubePlayer();
+
+    window.addEventListener('load', () => {
+      setTimeout(startTyping, 1600);
+    });
+  </script>
+</body>
+</html>
