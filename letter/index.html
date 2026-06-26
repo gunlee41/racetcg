@@ -322,6 +322,44 @@
       }
     }
 
+    .start-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(250, 243, 224, 0.92);
+      border-radius: 4px;
+      z-index: 5;
+      cursor: pointer;
+      transition: opacity 0.6s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .start-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .start-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      animation: floatPulse 2s ease-in-out infinite;
+    }
+
+    .start-text {
+      font-size: 18px;
+      color: #8b6914;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-6px) scale(1.05); opacity: 1; }
+    }
+
     .status-msg {
       position: fixed;
       top: 20px;
@@ -401,6 +439,10 @@
 
   <div class="paper">
     <div class="letter" id="letter"></div>
+    <div class="start-overlay" id="startOverlay">
+      <div class="start-icon">🎵</div>
+      <div class="start-text">탭하여 편지 열기</div>
+    </div>
   </div>
 
   <div class="controls">
@@ -478,6 +520,7 @@
     const restartBtn = document.getElementById('restartBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const statusMsg = document.getElementById('statusMsg');
+    const startOverlay = document.getElementById('startOverlay');
 
     // ============================================================
     // State
@@ -653,19 +696,17 @@
     let bgmStarted = false;
 
     function startBGM() {
-      if (bgmStarted || !bgmReady) return;
+      if (bgmStarted) return;
       bgmStarted = true;
+      audio.currentTime = 0;
+      const vol = parseInt(volSlider.value, 10);
+      audio.volume = vol / 100;
       audio.play().catch(() => {});
     }
-
-    document.addEventListener('click', startBGM, { once: true });
-    document.addEventListener('touchstart', startBGM, { once: true });
 
     audio.addEventListener('canplaythrough', () => {
       bgmReady = true;
       bgmBtn.title = 'BGM on/off';
-      const vol = parseInt(volSlider.value, 10);
-      audio.volume = vol / 100;
     });
 
     audio.addEventListener('error', () => {
@@ -690,6 +731,20 @@
         bgmBtn.classList.add('playing');
       }
     });
+
+    // ============================================================
+    // First interaction: start BGM + typing
+    // ============================================================
+    function handleFirstInteraction(e) {
+      startBGM();
+      startOverlay.classList.add('hidden');
+      startTyping();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    }
+
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
 
     // ============================================================
     // Volume control
@@ -733,10 +788,6 @@
     // ============================================================
     letterEl.appendChild(cursorEl);
     createPetals();
-
-    window.addEventListener('load', () => {
-      setTimeout(startTyping, 1600);
-    });
   </script>
 </body>
 </html>
