@@ -222,6 +222,98 @@
       background: rgba(255, 255, 255, 0.08);
     }
 
+    .vol-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #b0a590;
+      font-size: 13px;
+    }
+
+    .vol-group input[type="range"] {
+      width: 70px;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .vol-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #c0a880;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    .vol-group input[type="range"]::-webkit-slider-thumb:hover {
+      background: #d4b890;
+    }
+
+    .vol-group input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #c0a880;
+      cursor: pointer;
+      border: none;
+    }
+
+    .vol-label {
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .petal-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .petal {
+      position: absolute;
+      top: -30px;
+      border-radius: 50% 0 50% 0;
+      will-change: transform;
+    }
+
+    @keyframes petalFall {
+      0% {
+        opacity: 0;
+        transform: translateY(0) rotate(0deg) translateX(0);
+      }
+      8% {
+        opacity: 1;
+      }
+      25% {
+        transform: translateY(25vh) rotate(160deg) translateX(40px);
+      }
+      50% {
+        transform: translateY(50vh) rotate(320deg) translateX(-30px);
+      }
+      75% {
+        transform: translateY(75vh) rotate(480deg) translateX(50px);
+      }
+      92% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(110vh) rotate(640deg) translateX(-20px);
+      }
+    }
+
     .status-msg {
       position: fixed;
       top: 20px;
@@ -281,6 +373,10 @@
         width: 70px;
       }
 
+      .vol-group input[type="range"] {
+        width: 56px;
+      }
+
       .divider {
         display: none;
       }
@@ -289,6 +385,7 @@
 </head>
 <body>
   <div class="bg-glow"></div>
+  <div class="petal-container" id="petalContainer"></div>
 
   <div class="paper">
     <div class="letter" id="letter"></div>
@@ -296,6 +393,11 @@
 
   <div class="controls">
     <button class="ctrl-btn icon-btn" id="bgmBtn" title="BGM on/off">🔇</button>
+
+    <div class="vol-group">
+      <span id="volLabel" class="vol-label">50</span>
+      <input type="range" id="volSlider" min="0" max="100" value="50" />
+    </div>
 
     <div class="divider"></div>
 
@@ -359,6 +461,8 @@
     cursorEl.className = 'cursor';
 
     const bgmBtn = document.getElementById('bgmBtn');
+    const volSlider = document.getElementById('volSlider');
+    const volLabel = document.getElementById('volLabel');
     const speedSlider = document.getElementById('speedSlider');
     const speedLabel = document.getElementById('speedLabel');
     const showAllBtn = document.getElementById('showAllBtn');
@@ -544,6 +648,8 @@
             onReady: () => {
               bgmReady = true;
               bgmBtn.title = 'BGM on/off';
+              const initialVol = parseInt(volSlider.value, 10);
+              player.setVolume(initialVol);
             },
             onError: () => {
               bgmBtn.textContent = '⚠️';
@@ -572,6 +678,38 @@
     });
 
     // ============================================================
+    // Volume control
+    // ============================================================
+    volSlider.addEventListener('input', () => {
+      const vol = parseInt(volSlider.value, 10);
+      volLabel.textContent = vol;
+      if (player && player.setVolume) {
+        player.setVolume(vol);
+      }
+    });
+
+    // ============================================================
+    // Petal effect
+    // ============================================================
+    function createPetals() {
+      const container = document.getElementById('petalContainer');
+      const count = 28;
+      const colors = ['#ffb7c5', '#ffc0cb', '#ffd1dc', '#ffe4e1', '#f8c8d8'];
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'petal';
+        const size = 6 + Math.random() * 10;
+        p.style.width = size + 'px';
+        p.style.height = (size * (0.6 + Math.random() * 0.4)) + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animation = `petalFall ${10 + Math.random() * 14}s ${Math.random() * 20}s infinite linear`;
+        container.appendChild(p);
+      }
+    }
+
+    // ============================================================
     // Event listeners
     // ============================================================
     showAllBtn.addEventListener('click', showAll);
@@ -582,6 +720,7 @@
     // ============================================================
     letterEl.appendChild(cursorEl);
     initYouTubePlayer();
+    createPetals();
 
     window.addEventListener('load', () => {
       setTimeout(startTyping, 1600);
