@@ -532,7 +532,7 @@
     let isPaused = false;
     let timer = null;
     let bgmReady = false;
-    let bgmPlaying = true;
+    let bgmPlaying = false;
 
     const SPEED_MAP = {
       1: 220, 2: 180, 3: 150, 4: 120, 5: 100,
@@ -698,6 +698,7 @@
     function startBGM() {
       if (bgmStarted) return;
       bgmStarted = true;
+      bgmPlaying = true;
       audio.currentTime = 0;
       const vol = parseInt(volSlider.value, 10);
       audio.volume = vol / 100;
