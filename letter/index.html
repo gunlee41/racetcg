@@ -412,17 +412,13 @@
     <button class="ctrl-btn" id="restartBtn">다시 시작</button>
   </div>
 
-  <div id="youtubePlayer" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;overflow:hidden;"></div>
+  <audio id="bgmAudio" loop preload="auto" style="display:none;">
+    <source src="bgm.mp3" type="audio/mpeg" />
+  </audio>
 
   <div class="status-msg" id="statusMsg"></div>
 
   <script>
-    // ============================================================
-    // 🔽 여기에 유튜브 영상 ID를 넣으세요
-    //    예: 'dQw4w9WgXcQ' ← 유튜브 URL의 v= 부분
-    // ============================================================
-    const YOUTUBE_VIDEO_ID = '5-DrYgnKHFU';
-
     // ============================================================
     // 편지 내용
     // ============================================================
@@ -478,7 +474,6 @@
     let isComplete = false;
     let isPaused = false;
     let timer = null;
-    let player = null;
     let bgmReady = false;
     let bgmPlaying = false;
 
@@ -610,67 +605,33 @@
     }
 
     // ============================================================
-    // BGM (YouTube IFrame API)
+    // BGM (HTML5 Audio)
     // ============================================================
-    function initYouTubePlayer() {
-      if (YOUTUBE_VIDEO_ID === 'YOUR_VIDEO_ID') {
-        bgmBtn.title = '유튜브 영상 ID를 설정해주세요';
-        bgmBtn.style.opacity = '0.4';
-        bgmBtn.style.cursor = 'not-allowed';
-        return;
-      }
+    const audio = document.getElementById('bgmAudio');
 
-      if (typeof YT === 'undefined' || !YT.Player) {
-        const tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        const first = document.getElementsByTagName('script')[0];
-        first.parentNode.insertBefore(tag, first);
-        window.onYouTubeIframeAPIReady = createPlayer;
-      } else {
-        createPlayer();
-      }
-    }
+    audio.addEventListener('canplaythrough', () => {
+      bgmReady = true;
+      bgmBtn.title = 'BGM on/off';
+      const vol = parseInt(volSlider.value, 10);
+      audio.volume = vol / 100;
+    });
 
-    function createPlayer() {
-      try {
-        player = new YT.Player('youtubePlayer', {
-          height: '0',
-          width: '0',
-          videoId: YOUTUBE_VIDEO_ID,
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            loop: 1,
-            playlist: YOUTUBE_VIDEO_ID,
-            enablejsapi: 1,
-          },
-          events: {
-            onReady: () => {
-              bgmReady = true;
-              bgmBtn.title = 'BGM on/off';
-              const initialVol = parseInt(volSlider.value, 10);
-              player.setVolume(initialVol);
-            },
-            onError: () => {
-              bgmBtn.textContent = '⚠️';
-              bgmBtn.title = 'BGM을 불러올 수 없습니다';
-            },
-          },
-        });
-      } catch (e) {
-        bgmBtn.textContent = '⚠️';
-      }
-    }
+    audio.addEventListener('error', () => {
+      bgmBtn.textContent = '⚠️';
+      bgmBtn.title = 'BGM을 불러올 수 없습니다';
+      bgmBtn.style.opacity = '0.4';
+      bgmBtn.style.cursor = 'not-allowed';
+    });
 
     bgmBtn.addEventListener('click', () => {
-      if (!bgmReady || !player) return;
+      if (!bgmReady) return;
       if (bgmPlaying) {
-        player.pauseVideo();
+        audio.pause();
         bgmPlaying = false;
         bgmBtn.textContent = '🔇';
         bgmBtn.classList.remove('playing');
       } else {
-        player.playVideo();
+        audio.play().catch(() => {});
         bgmPlaying = true;
         bgmBtn.textContent = '🎵';
         bgmBtn.classList.add('playing');
@@ -683,9 +644,7 @@
     volSlider.addEventListener('input', () => {
       const vol = parseInt(volSlider.value, 10);
       volLabel.textContent = vol;
-      if (player && player.setVolume) {
-        player.setVolume(vol);
-      }
+      audio.volume = vol / 100;
     });
 
     // ============================================================
@@ -719,7 +678,6 @@
     // Init
     // ============================================================
     letterEl.appendChild(cursorEl);
-    initYouTubePlayer();
     createPetals();
 
     window.addEventListener('load', () => {
