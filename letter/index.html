@@ -449,20 +449,19 @@
     <button class="ctrl-btn icon-btn" id="bgmBtn" title="BGM on/off">🔇</button>
 
     <div class="vol-group">
-      <span id="volLabel" class="vol-label">50</span>
-      <input type="range" id="volSlider" min="0" max="100" value="50" />
+      <span id="volLabel" class="vol-label">40</span>
+      <input type="range" id="volSlider" min="0" max="100" value="40" />
     </div>
 
     <div class="divider"></div>
 
     <div class="speed-group">
       <span id="speedLabel" class="speed-label">보통</span>
-      <input type="range" id="speedSlider" min="1" max="10" value="3" />
+      <input type="range" id="speedSlider" min="1" max="10" value="2" />
     </div>
 
     <div class="divider"></div>
 
-    <button class="ctrl-btn" id="pauseBtn">일시정지</button>
     <button class="ctrl-btn" id="showAllBtn">한 번에 보기</button>
     <button class="ctrl-btn" id="restartBtn">다시 시작</button>
   </div>
@@ -518,9 +517,9 @@
     const speedLabel = document.getElementById('speedLabel');
     const showAllBtn = document.getElementById('showAllBtn');
     const restartBtn = document.getElementById('restartBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
     const statusMsg = document.getElementById('statusMsg');
     const startOverlay = document.getElementById('startOverlay');
+    const paperEl = document.querySelector('.paper');
 
     // ============================================================
     // State
@@ -566,8 +565,6 @@
           isComplete = true;
           isTyping = false;
           cursorEl.classList.add('done');
-          pauseBtn.disabled = true;
-          pauseBtn.textContent = '완료';
         }
         return;
       }
@@ -602,8 +599,6 @@
       if (isTyping || isComplete) return;
       isTyping = true;
       isPaused = false;
-      pauseBtn.textContent = '일시정지';
-      pauseBtn.disabled = false;
       typeNext();
     }
 
@@ -623,9 +618,14 @@
       if (isComplete) return;
       if (isPaused) {
         resumeTyping();
+        if (bgmPlaying) {
+          audio.play().catch(() => {});
+        }
+        showStatus('재개');
       } else if (isTyping) {
         pauseTyping();
-        pauseBtn.textContent = '재개';
+        audio.pause();
+        showStatus('일시정지');
       }
     }
 
@@ -652,8 +652,6 @@
       currentIndex = chars.length;
       isComplete = true;
       cursorEl.classList.add('done');
-      pauseBtn.disabled = true;
-      pauseBtn.textContent = '완료';
       letterEl.appendChild(cursorEl);
       showStatus('모든 내용을 표시했습니다');
     }
@@ -664,8 +662,6 @@
       currentIndex = 0;
       isComplete = false;
       cursorEl.classList.remove('done');
-      pauseBtn.disabled = false;
-      pauseBtn.textContent = '일시정지';
       letterEl.appendChild(cursorEl);
       showStatus('다시 시작합니다');
       startTyping();
@@ -780,9 +776,12 @@
     // ============================================================
     // Event listeners
     // ============================================================
-    pauseBtn.addEventListener('click', togglePause);
     showAllBtn.addEventListener('click', showAll);
     restartBtn.addEventListener('click', restart);
+    paperEl.addEventListener('click', (e) => {
+      if (e.target.closest('.controls') || e.target.closest('.start-overlay:not(.hidden)')) return;
+      togglePause();
+    });
 
     // ============================================================
     // Init
